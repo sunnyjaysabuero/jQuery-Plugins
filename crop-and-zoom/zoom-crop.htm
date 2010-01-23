@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<title>Image Cropped Zoom Demo</title>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script> 
+ 		<script type="text/javascript" src="js/jquery.cropZoom-min.js"></script>
+		 <script type="text/javascript">
+		 	$(document).ready(function(){
+				$('.crop-zoom').cropZoom({});
+			});
+		 </script>
+		 <style>
+		 	/*you have to set the containers initial height / width in px as it's required */
+		 	#productImageDefault{
+		 		width: 215px; 
+				height: 215px; 
+				border: 1px solid #333;
+				}
+			div{margin-bottom: 10px;}	  
+		 </style>
+	 </head>
+	 <body>
+	 	<div id="productImageDefault" class="crop-zoom">
+	 		<img src="images/mower.jpg" />
+	 	</div>
+	 </body>
+</html>
