@@ -1,3 +1,4 @@
+/* jquery YouTube grabber, from systemseven (http://www.systemsevendesigns.com) released on blog : webdevkungfu.com */
 (function($){
 	$.fn.youTube = function(options) {
 		var defaults = {
