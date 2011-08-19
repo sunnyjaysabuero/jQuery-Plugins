@@ -1,6 +1,7 @@
 /* jquery YouTube grabber, from systemseven (http://www.systemsevendesigns.com) released on blog : webdevkungfu.com */
-(function($){
-	$.fn.youTube = function(options) {
+/* cleaned and improved by Dominik Deobald (http://blog.deobald.org) for Interdose.com */
+(function(jQuery){
+	jQuery.fn.youTube = function(options) {
 		var defaults = {
 			videoHeader: null							/* header to display above video list*/
 			,results : 5								/* number of results to return / display */
@@ -16,10 +17,10 @@
 			,thumbnail : 'small'						/* small: 120x90 | large: 480 x 360 */
 			,onload : null								/* function to call after data has been retreived */
 		};
-		options = $.extend(defaults, options);
+		options = jQuery.extend(defaults, options);
 		
 		return this.each(function(){
-			var container = $(this);
+			var container = jQuery(this);
 			requestYouTubeVideos();
 			
 			function requestYouTubeVideos() {				
@@ -33,13 +34,13 @@
 				if(options.orderBy != null) params['orderby'] = options.orderBy;
 				if(options.query != null) params['q'] = options.query;
 
-				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?' + $.param(params);
+				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?' + jQuery.param(params);
 
 				if (options.onload == null) {
 					options.onload = defaultShow;
 				}
 				
-				$.ajax({
+				jQuery.ajax({
 				    type: "GET",
 				    url: requestUrl,
 				    dataType: 'jsonp',
@@ -54,7 +55,7 @@
 				var relVideos = [];
 
 				if(rfeed.length > 0) {
-					$(rfeed).each(function(i) {
+					jQuery(rfeed).each(function(i) {
 						relVideos[i] = [];
 						relVideos[i].id = stripFeature(rfeed[i].link[0].href.substring(rfeed[i].link[0].href.indexOf('=')+1,rfeed[i].link[0].href.length));
 						relVideos[i].url = rfeed[i].link[0].href;
@@ -71,7 +72,7 @@
 						relVideos[i].author = rfeed[i].author[0].name.$t;
 
 						if (rfeed[i].media$group.media$keywords.$t.length > 0) {
-							relVideos[i].tags = $.map(
+							relVideos[i].tags = jQuery.map(
 								rfeed[i].media$group.media$keywords.$t.split(','), 
 								jQuery.trim
 							);
@@ -111,7 +112,7 @@
 
 				relVideos.sort(arraySort);
 				if (relVideos.length > 0) {
-					$(relVideos).each(function(i){
+					jQuery(relVideos).each(function(i){
 						numRatings = (relVideos[i].numRaters != 1) ? 'ratings' : 'rating';
 						numStars = getStarRating(relVideos[i].rating);
 						
@@ -139,7 +140,7 @@
 					});
 					container.append('<p class="moreabout"><a href="'+options.viewMoreLink+'" class="learn-more">'+options.viewMoreText+'</a></p>');	
 					if (options.linkAction == 'modal') {
-						$('.modalvideo').videoDialog({});
+						jQuery('.modalvideo').videoDialog({});
 					}
 				}
 
