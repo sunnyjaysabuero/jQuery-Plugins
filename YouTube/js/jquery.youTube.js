@@ -22,20 +22,18 @@
 			var container = $(this);
 			requestYouTubeVideos();
 			
-			function requestYouTubeVideos()
-			{
-				if(options.videoHeader != null){container.append('<h3>'+options.videoHeader+'</h3>');}
-				
-				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?alt=json&max-results='+options.results+'&start-index='+options.start;
-				if(options.author != null){
-					requestUrl += '&author='+options.author;
-				}
-				if(options.orderBy != null){
-					requestUrl += '&orderby='+options.orderBy;
-				}
-				if(options.query != null){
-					requestUrl += '&q='+options.query;
-				}
+			function requestYouTubeVideos() {				
+				var params = {
+						'alt': 'json',
+						'max-results': options.results,
+						'start-index': options.start
+				};
+
+				if(options.author != null) params['author'] = options.author;
+				if(options.orderBy != null) params['orderby'] = options.orderBy;
+				if(options.query != null) params['q'] = options.query;
+
+				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?' + $.param(params);
 
 				if (options.onload == null) {
 					options.onload = defaultShow;
@@ -103,6 +101,8 @@
 			}
 
 			function defaultShow(relVideos, totalResults, startIndex) {
+				if(options.videoHeader != null){container.append('<h3>'+options.videoHeader+'</h3>');}
+
 				if (relVideos == null) {
 					/* if we have no youtube videos returned, let's hide the container */
 					container.hide();
