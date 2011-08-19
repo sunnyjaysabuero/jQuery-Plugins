@@ -4,6 +4,7 @@
 		var defaults = {
 			videoHeader: null							/* header to display above video list*/
 			,results : 5								/* number of results to return / display */
+			,start : 1									/* start retreiving results at which position */
 			,orderBy : null								/* what to order the results by */
 			,query  : null								/* query to run against youTube videos */
 			,author : null								/* author of the video */
@@ -25,7 +26,7 @@
 			{
 				if(options.videoHeader != null){container.append('<h3>'+options.videoHeader+'</h3>');}
 				
-				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?alt=json&max-results='+options.results;
+				var requestUrl = 'http://gdata.youtube.com/feeds/api/videos?alt=json&max-results='+options.results+'&start-index='+options.start;
 				if(options.author != null){
 					requestUrl += '&author='+options.author;
 				}
@@ -94,14 +95,14 @@
 							relVideos[i].numRaters = '0';
 						}
 					}).ready(function(){
-						options.onload(relVideos)
+						options.onload(relVideos, feed.openSearch$totalResults.$t, feed.openSearch$startIndex.$t);
 					});							
 				} else {
-					options.onload(null)
+					options.onload(null, 0, 1);
 				}
 			}
 
-			function defaultShow(relVideos) {
+			function defaultShow(relVideos, totalResults, startIndex) {
 				if (relVideos == null) {
 					/* if we have no youtube videos returned, let's hide the container */
 					container.hide();
