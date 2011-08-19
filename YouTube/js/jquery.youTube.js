@@ -56,7 +56,6 @@
 
 				if(rfeed.length > 0) {
 					$(rfeed).each(function(i) {
-						console.log(rfeed[i]);
 						relVideos[i] = [];
 						relVideos[i].id = stripFeature(rfeed[i].link[0].href.substring(rfeed[i].link[0].href.indexOf('=')+1,rfeed[i].link[0].href.length));
 						relVideos[i].url = rfeed[i].link[0].href;
@@ -71,6 +70,15 @@
 						relVideos[i].thumbnail = rfeed[i].media$group.media$thumbnail[index].url;
 						relVideos[i].description = rfeed[i].media$group.media$description.$t;
 						relVideos[i].author = rfeed[i].author[0].name.$t;
+
+						if (rfeed[i].media$group.media$keywords.$t.length > 0) {
+							relVideos[i].tags = $.map(
+								rfeed[i].media$group.media$keywords.$t.split(','), 
+								jQuery.trim
+							);
+						} else {
+							relVideos[i].tags = [];
+						}
 
 						if(rfeed[i].yt$statistics) {
 							relVideos[i].views = rfeed[i].yt$statistics.viewCount;
