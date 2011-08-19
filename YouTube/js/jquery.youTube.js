@@ -13,6 +13,7 @@
 			,showDescription : true						/* show a clipped version of the video description */
 			,descriptionLength : 150					/* length of the description to bring back, will append ... to the end */
 			,thumbnail : 'small'						/* small: 120x90 | large: 480 x 360 */
+			,onload : null								/* function to call after data has been retreived */
 		};
 		options = $.extend(defaults, options);
 		
@@ -34,6 +35,10 @@
 				if(options.query != null){
 					requestUrl += '&q='+options.query;
 				}
+
+				if (options.onload == null) {
+					options.onload = defaultShow;
+				}
 				
 				$.ajax({
 				    type: "GET",
@@ -44,80 +49,92 @@
 					})		
 			}	
 			
-			function onYouTubeSuccess(result)
-			{
-      					var feed = result.feed;
-      					var rfeed = feed.entry || [];
-						var relVideos = [];
-						if(rfeed.length > 0){
-						  $(rfeed).each(function(i) {
-								relVideos[i] = [];
-								relVideos[i].id = stripFeature(rfeed[i].link[0].href.substring(rfeed[i].link[0].href.indexOf('=')+1,rfeed[i].link[0].href.length));
-								relVideos[i].url = rfeed[i].link[0].href;
-								relVideos[i].title = rfeed[i].title.$t;
-								if (options.thumbnail == 'large') {
-									var index = rfeed[i].media$group.media$thumbnail.length-1
-								}else{
-									var index = 0;
-								}
-								relVideos[i].thumbnail = rfeed[i].media$group.media$thumbnail[index].url;
-								relVideos[i].description = rfeed[i].media$group.media$description.$t;
-								relVideos[i].author = rfeed[i].author[0].name.$t;
-								
-								if(rfeed[i].yt$statistics){
-									relVideos[i].views = rfeed[i].yt$statistics.viewCount;
-								}
-								else if(!rfeed[i].yt$statistics){
-									relVideos[i].views = '0';
-								}
-								if(rfeed[i].gd$rating){
-									relVideos[i].rating = rfeed[i].gd$rating.average;
-									relVideos[i].numRaters = rfeed[i].gd$rating.numRaters;
-								}
-								else if(!rfeed[i].gd$rating){
-									relVideos[i].rating = '0.00';
-									relVideos[i].numRaters = '0';
-								}
-						  }).ready(function(){
-								relVideos.sort(arraySort);
-								if (relVideos.length > 0) {
-									$(relVideos).each(function(i){
-										numRatings = (relVideos[i].numRaters != 1) ? 'ratings' : 'rating';
-										numStars = getStarRating(relVideos[i].rating);
-										
-										container.append('<div class="video-item">');
-											videoItem = container.find('.video-item:last');
-											
-											videoItem.append('<div class="video-thumb"><a href="'+relVideos[i].url+'" target="_blank" title="'+relVideos[i].title+'"><img src="' + relVideos[i].thumbnail + '" alt="' + relVideos[i].title + '" /></a></div>');
-											
-											videoItem.append('<div class="video-info">');
-											videoInfo = videoItem.find('.video-info');
-											videoInfo.append('<a href="'+relVideos[i].url+'" target="_blank" title="'+relVideos[i].title+'" class="video-title">' + relVideos[i].title + '</a>');
-											if(options.showDescription){
-												videoInfo.append('<p class="video-desc">'+setDescription(relVideos[i].description)+'</p>');
-											}
-											if (options.showRatings) {
-												videoInfo.append('<div class="video-rating-'+numStars+'"></div>');
-											}
-											if (options.showNumRatings){
-												videoInfo.append('<div class="video-num-ratings">'+relVideos[i].numRaters+' ratings</div>');
-											}
-											if (options.showViews) {
-												videoInfo.append('<p class="video-num-views">' + relVideos[i].views + ' views</p>');
-											}
-											
-									});
-									container.append('<p class="moreabout"><a href="'+options.viewMoreLink+'" class="learn-more">'+options.viewMoreText+'</a></p>');	
-									if (options.linkAction == 'modal') {
-										$('.modalvideo').videoDialog({});
-									}
-								}
-						  });							
-						}else{
-							/* if we have no youtube videos returned, let's hide the container */
-							container.hide();
+			function onYouTubeSuccess(result) {
+				var feed = result.feed;
+				var rfeed = feed.entry || [];
+				var relVideos = [];
+
+				if(rfeed.length > 0) {
+					$(rfeed).each(function(i) {
+						console.log(rfeed[i]);
+						relVideos[i] = [];
+						relVideos[i].id = stripFeature(rfeed[i].link[0].href.substring(rfeed[i].link[0].href.indexOf('=')+1,rfeed[i].link[0].href.length));
+						relVideos[i].url = rfeed[i].link[0].href;
+						relVideos[i].title = rfeed[i].title.$t;
+						
+						if (options.thumbnail == 'large') {
+							var index = rfeed[i].media$group.media$thumbnail.length-1
+						} else {
+							var index = 0;
 						}
 						
+						relVideos[i].thumbnail = rfeed[i].media$group.media$thumbnail[index].url;
+						relVideos[i].description = rfeed[i].media$group.media$description.$t;
+						relVideos[i].author = rfeed[i].author[0].name.$t;
+
+						if(rfeed[i].yt$statistics) {
+							relVideos[i].views = rfeed[i].yt$statistics.viewCount;
+						} else if(!rfeed[i].yt$statistics) {
+							relVideos[i].views = '0';
+						}
+
+						if(rfeed[i].gd$rating){
+							relVideos[i].rating = rfeed[i].gd$rating.average;
+							relVideos[i].numRaters = rfeed[i].gd$rating.numRaters;
+						} else if(!rfeed[i].gd$rating) {
+							relVideos[i].rating = '0.00';
+							relVideos[i].numRaters = '0';
+						}
+					}).ready(function(){
+						options.onload(relVideos)
+					});							
+				} else {
+					options.onload(null)
+				}
+			}
+
+			function defaultShow(relVideos) {
+				if (relVideos == null) {
+					/* if we have no youtube videos returned, let's hide the container */
+					container.hide();
+					return 0;
+				}
+
+				relVideos.sort(arraySort);
+				if (relVideos.length > 0) {
+					$(relVideos).each(function(i){
+						numRatings = (relVideos[i].numRaters != 1) ? 'ratings' : 'rating';
+						numStars = getStarRating(relVideos[i].rating);
+						
+						container.append('<div class="video-item">');
+							videoItem = container.find('.video-item:last');
+							
+							videoItem.append('<div class="video-thumb"><a href="'+relVideos[i].url+'" target="_blank" title="'+relVideos[i].title+'"><img src="' + relVideos[i].thumbnail + '" alt="' + relVideos[i].title + '" /></a></div>');
+							
+							videoItem.append('<div class="video-info">');
+							videoInfo = videoItem.find('.video-info');
+							videoInfo.append('<a href="'+relVideos[i].url+'" target="_blank" title="'+relVideos[i].title+'" class="video-title">' + relVideos[i].title + '</a>');
+							if(options.showDescription){
+								videoInfo.append('<p class="video-desc">'+setDescription(relVideos[i].description)+'</p>');
+							}
+							if (options.showRatings) {
+								videoInfo.append('<div class="video-rating-'+numStars+'"></div>');
+							}
+							if (options.showNumRatings){
+								videoInfo.append('<div class="video-num-ratings">'+relVideos[i].numRaters+' ratings</div>');
+							}
+							if (options.showViews) {
+								videoInfo.append('<p class="video-num-views">' + relVideos[i].views + ' views</p>');
+							}
+							
+					});
+					container.append('<p class="moreabout"><a href="'+options.viewMoreLink+'" class="learn-more">'+options.viewMoreText+'</a></p>');	
+					if (options.linkAction == 'modal') {
+						$('.modalvideo').videoDialog({});
+					}
+				}
+
+				return relVideos.length;
 			}
 			
 			function onYouTubeError(result)
